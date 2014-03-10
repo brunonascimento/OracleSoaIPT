@@ -1,0 +1,16 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<BPELSuitcase>
+   <BPELProcess id="BPELBestDogPedido" src="BPELBestDogPedido.bpel">
+      <partnerLinkBindings>
+         <partnerLinkBinding name="client">
+            <property name="wsdlLocation">BPELBestDogPedido.wsdl</property>
+         </partnerLinkBinding>
+         <partnerLinkBinding name="PartnerLink_Loja">
+            <property name="wsdlLocation">PartnerLink_Loja.wsdl</property>
+         </partnerLinkBinding>
+         <partnerLinkBinding name="PartnerLink_Central">
+            <property name="wsdlLocation">PartnerLink_Central.wsdl</property>
+         </partnerLinkBinding>
+      </partnerLinkBindings>
+   </BPELProcess>
+</BPELSuitcase>

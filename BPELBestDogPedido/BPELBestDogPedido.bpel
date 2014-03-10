@@ -1,0 +1,129 @@
+<!--
+  ///////////////////////////////////////////////////////////////////////////////////////////// 
+  // Oracle JDeveloper BPEL Designer 
+  // 
+  // Created: Mon Dec 16 21:20:30 BRST 2013
+  // Author:  Administrador
+  // Purpose: Synchronous BPEL Process
+  ///////////////////////////////////////////////////////////////////////////////////////////// 
+-->
+<process name="BPELBestDogPedido" targetNamespace="http://xmlns.oracle.com/BPELBestDogPedido" xmlns="http://schemas.xmlsoap.org/ws/2003/03/business-process/" xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20" xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/" xmlns:ns1="http://www.w3.org/2001/XMLSchema" xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://tempuri.org/" xmlns:client="http://xmlns.oracle.com/BPELBestDogPedido" xmlns:bpelx="http://schemas.oracle.com/bpel/extension" xmlns:ora="http://schemas.oracle.com/xpath/extension" xmlns:orcl="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"><!-- ================================================================= --><!-- PARTNERLINKS                                                      --><!-- List of services participating in this BPEL process               --><!-- ================================================================= -->
+  <partnerLinks><!-- 
+    The 'client' role represents the requester of this service. It is 
+    used for callback. The location and correlation information associated
+    with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="client" partnerLinkType="client:BPELBestDogPedido" myRole="BPELBestDogPedidoProvider"/>
+    <partnerLink myRole="LojaSoap_Role" name="PartnerLink_Loja" partnerRole="LojaSoap_Role" partnerLinkType="ns2:LojaSoap_PL"/>
+    <partnerLink myRole="CentralSoap_Role" name="PartnerLink_Central" partnerRole="CentralSoap_Role" partnerLinkType="ns2:CentralSoap_PL"/>
+  </partnerLinks><!-- ================================================================= --><!-- VARIABLES                                                         --><!-- List of messages and XML documents used within this BPEL process  --><!-- ================================================================= -->
+  <variables><!-- Reference to the message passed as input during initiation --><!--  
+    Reference to the message that will be returned to the requester
+    -->
+    <variable name="VerificaEstoque_OutputVariable" messageType="ns2:VerificaEstoqueSoapOut"/>
+    <variable name="VerificaEstoque_InputVariable" messageType="ns2:VerificaEstoqueSoapIn"/>
+    <variable name="OutputVariable" messageType="client:BPELBestDogPedidoResponseMessage"/>
+    <variable name="InputVariable" messageType="client:BPELBestDogPedidoRequestMessage"/>
+    <variable name="VerificaFidelidade_InputVariable" messageType="ns2:VerificaFidelidadeSoapIn"/>
+    <variable name="VerificaFidelidade_OutputVariable" messageType="ns2:VerificaFidelidadeSoapOut"/>
+    <variable name="CalculaPreco_InputVariable" messageType="ns2:CalculaPrecoSoapIn"/>
+    <variable name="CalculaPreco_OutputVariable" messageType="ns2:CalculaPrecoSoapOut"/>
+    <variable name="RegistraVenda_RegistraVenda_InputVariable" messageType="ns2:RegistraVendaSoapIn"/>
+    <variable name="RegistraVenda_RegistraVenda_OutputVariable" messageType="ns2:RegistraVendaSoapOut"/>
+    <variable name="AtualizaEstoqueCentral_InputVariable" messageType="ns2:AtualizaEstoqueCentralSoapIn"/>
+    <variable name="AtualizaEstoqueCentral_OutputVariable" messageType="ns2:AtualizaEstoqueCentralSoapOut"/>
+    <variable name="AtualizaEstoqueLocal_InputVariable" messageType="ns2:AtualizaEstoqueLocalSoapIn"/>
+    <variable name="AtualizaEstoqueLocal_OutputVariable" messageType="ns2:AtualizaEstoqueLocalSoapOut"/>
+  </variables><!-- ================================================================= --><!-- ORCHESTRATION LOGIC                                               --><!-- Set of activities coordinating the flow of messages across the    --><!-- services integrated within this business process                  --><!-- ================================================================= -->
+  <sequence name="main"><!-- Receive input from requestor. 
+    Note: This maps to operation defined in BPELBestDogPedido.wsdl
+    -->
+    <receive name="receiveInput" partnerLink="client" portType="client:BPELBestDogPedido" operation="process" variable="InputVariable" createInstance="yes"/><!-- Generate reply to synchronous request -->
+    <assign name="Assign_VariavelEntrada">
+      <copy>
+        <from variable="InputVariable" part="TipoHotDog"/>
+        <to variable="VerificaEstoque_InputVariable" part="parameters" query="/ns2:VerificaEstoque/ns2:tipoHotDog"/>
+      </copy>
+      <copy>
+        <from variable="InputVariable" part="TipoBebida"/>
+        <to variable="VerificaEstoque_InputVariable" part="parameters" query="/ns2:VerificaEstoque/ns2:tipoBebida"/>
+      </copy>
+    </assign>
+    <invoke name="VerificaEstoque" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="VerificaEstoque" inputVariable="VerificaEstoque_InputVariable" outputVariable="VerificaEstoque_OutputVariable"/>
+    <switch name="Switch_1">
+      <case condition="bpws:getVariableData('VerificaEstoque_OutputVariable','parameters','/ns2:VerificaEstoqueResponse/ns2:VerificaEstoqueResult') = 'true'">
+        <sequence name="Sequence_1">
+          <invoke name="VerificaFidelidade" partnerLink="PartnerLink_Central" portType="ns2:CentralSoap" operation="VerificaFidelidade" inputVariable="VerificaFidelidade_InputVariable" outputVariable="VerificaFidelidade_OutputVariable"/>
+          <assign name="Assign_CalculaPreco">
+            <copy>
+              <from variable="InputVariable" part="TipoHotDog"/>
+              <to variable="CalculaPreco_InputVariable" part="parameters" query="/ns2:CalculaPreco/ns2:tipoHotDog"/>
+            </copy>
+            <copy>
+              <from variable="InputVariable" part="TipoBebida"/>
+              <to variable="CalculaPreco_InputVariable" part="parameters" query="/ns2:CalculaPreco/ns2:tipoBebida"/>
+            </copy>
+            <copy>
+              <from variable="VerificaFidelidade_OutputVariable" part="parameters" query="/ns2:VerificaFidelidadeResponse/ns2:VerificaFidelidadeResult"/>
+              <to variable="CalculaPreco_InputVariable" part="parameters" query="/ns2:CalculaPreco/ns2:desconto"/>
+            </copy>
+          </assign>
+          <invoke name="CalculaPreco" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="CalculaPreco" inputVariable="CalculaPreco_InputVariable" outputVariable="CalculaPreco_OutputVariable"/>
+          <assign name="Assign_RegistraVenda">
+            <copy>
+              <from variable="InputVariable" part="TipoHotDog"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:tipoHotDog"/>
+            </copy>
+            <copy>
+              <from variable="InputVariable" part="TipoBebida"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:tipoBebida"/>
+            </copy>
+            <copy>
+              <from variable="InputVariable" part="CPF"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:cpf"/>
+            </copy>
+          </assign>
+          <invoke name="RegistraVenda" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="RegistraVenda" inputVariable="RegistraVenda_RegistraVenda_InputVariable" outputVariable="RegistraVenda_RegistraVenda_OutputVariable"/>
+          <assign name="Assign_AtualizaEstoqueLocal">
+            <copy>
+              <from expression="&quot;1&quot;"/>
+              <to variable="AtualizaEstoqueLocal_InputVariable" part="parameters" query="/ns2:AtualizaEstoqueLocal/ns2:filial"/>
+            </copy>
+            <copy>
+              <from variable="InputVariable" part="TipoHotDog"/>
+              <to variable="AtualizaEstoqueLocal_InputVariable" part="parameters" query="/ns2:AtualizaEstoqueLocal/ns2:idProduto"/>
+            </copy>
+            <copy>
+              <from expression="&quot;1&quot;"/>
+              <to variable="AtualizaEstoqueLocal_InputVariable" part="parameters" query="/ns2:AtualizaEstoqueLocal/ns2:qtdeVendida"/>
+            </copy>
+          </assign>
+          <invoke name="AtualizaEstoqueLocal" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="AtualizaEstoqueLocal" inputVariable="AtualizaEstoqueLocal_InputVariable" outputVariable="AtualizaEstoqueLocal_OutputVariable"/>
+          <assign name="Assign_atualizaEstoqueCentral">
+            <copy>
+              <from variable="InputVariable" part="TipoHotDog"/>
+              <to variable="AtualizaEstoqueCentral_InputVariable" part="parameters" query="/ns2:AtualizaEstoqueCentral/ns2:idProduto"/>
+            </copy>
+            <copy>
+              <from expression="&quot;1&quot;"/>
+              <to variable="AtualizaEstoqueCentral_InputVariable" part="parameters" query="/ns2:AtualizaEstoqueCentral/ns2:qtdeVendida"/>
+            </copy>
+          </assign>
+          <invoke name="AtualizaEstoqueCentral" partnerLink="PartnerLink_Central" portType="ns2:CentralSoap" operation="AtualizaEstoqueCentral" inputVariable="AtualizaEstoqueCentral_InputVariable" outputVariable="AtualizaEstoqueCentral_OutputVariable"/>
+        </sequence>
+      </case>
+      <otherwise/>
+    </switch>
+    <assign name="Assign_VariavelSaida">
+      <copy>
+        <from variable="VerificaEstoque_OutputVariable" part="parameters" query="/ns2:VerificaEstoqueResponse/ns2:VerificaEstoqueResult"/>
+        <to variable="OutputVariable" part="Vendido"/>
+      </copy>
+      <copy>
+        <from variable="CalculaPreco_OutputVariable" part="parameters" query="/ns2:CalculaPrecoResponse/ns2:CalculaPrecoResult"/>
+        <to variable="OutputVariable" part="Valor"/>
+      </copy>
+    </assign>
+    <reply name="replyOutput" partnerLink="client" portType="client:BPELBestDogPedido" operation="process" variable="OutputVariable"/>
+  </sequence>
+</process>

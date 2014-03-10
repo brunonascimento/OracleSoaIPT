@@ -1,0 +1,48 @@
+<definitions
+     name="BPELBestDogPedido"
+     targetNamespace="http://xmlns.oracle.com/BPELBestDogPedido"
+     xmlns="http://schemas.xmlsoap.org/wsdl/"
+     xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+     xmlns:client="http://xmlns.oracle.com/BPELBestDogPedido"
+    >
+    <types>
+        <schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://xmlns.oracle.com/BPELBestDogPedido"
+             xmlns="http://www.w3.org/2001/XMLSchema">
+            <element name="BPELBestDogPedidoProcessRequest">
+                <complexType>
+                    <sequence>
+                        <element name="input" type="string"/>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="BPELBestDogPedidoProcessResponse">
+                <complexType>
+                    <sequence>
+                        <element name="result" type="string"/>
+                    </sequence>
+                </complexType>
+            </element>
+        </schema>
+    </types>
+    <message name="BPELBestDogPedidoResponseMessage">
+        <part name="Valor" type="xsd:decimal"/>
+        <part name="Vendido" type="xsd:boolean"/>
+    </message>
+    <message name="BPELBestDogPedidoRequestMessage">
+        <part name="TipoHotDog" type="xsd:int"/>
+        <part name="TipoBebida" type="xsd:int"/>
+        <part name="CPF" type="xsd:string"/>
+    </message>
+    <portType name="BPELBestDogPedido">
+        <operation name="process">
+            <input message="client:BPELBestDogPedidoRequestMessage"/>
+            <output message="client:BPELBestDogPedidoResponseMessage"/>
+        </operation>
+    </portType>
+    <plnk:partnerLinkType name="BPELBestDogPedido">
+        <plnk:role name="BPELBestDogPedidoProvider">
+            <plnk:portType name="client:BPELBestDogPedido"/>
+        </plnk:role>
+    </plnk:partnerLinkType>
+</definitions>
