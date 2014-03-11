@@ -48,8 +48,18 @@
         <from variable="InputVariable" part="TipoBebida"/>
         <to variable="VerificaEstoque_InputVariable" part="parameters" query="/ns2:VerificaEstoque/ns2:tipoBebida"/>
       </copy>
+      <copy>
+        <from expression="1"/>
+        <to variable="VerificaEstoque_InputVariable" part="parameters" query="/ns2:VerificaEstoque/ns2:filial"/>
+      </copy>
     </assign>
     <invoke name="VerificaEstoque" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="VerificaEstoque" inputVariable="VerificaEstoque_InputVariable" outputVariable="VerificaEstoque_OutputVariable"/>
+    <assign name="Assign_VerificaFidelidade">
+      <copy>
+        <from variable="InputVariable" part="CPF"/>
+        <to variable="VerificaFidelidade_InputVariable" part="parameters" query="/ns2:VerificaFidelidade/ns2:CPF"/>
+      </copy>
+    </assign>
     <switch name="Switch_1">
       <case condition="bpws:getVariableData('VerificaEstoque_OutputVariable','parameters','/ns2:VerificaEstoqueResponse/ns2:VerificaEstoqueResult') = 'true'">
         <sequence name="Sequence_1">
@@ -67,6 +77,10 @@
               <from variable="VerificaFidelidade_OutputVariable" part="parameters" query="/ns2:VerificaFidelidadeResponse/ns2:VerificaFidelidadeResult"/>
               <to variable="CalculaPreco_InputVariable" part="parameters" query="/ns2:CalculaPreco/ns2:desconto"/>
             </copy>
+            <copy>
+              <from expression="1"/>
+              <to variable="CalculaPreco_InputVariable" part="parameters" query="/ns2:CalculaPreco/ns2:filial"/>
+            </copy>
           </assign>
           <invoke name="CalculaPreco" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="CalculaPreco" inputVariable="CalculaPreco_InputVariable" outputVariable="CalculaPreco_OutputVariable"/>
           <assign name="Assign_RegistraVenda">
@@ -81,6 +95,18 @@
             <copy>
               <from variable="InputVariable" part="CPF"/>
               <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:cpf"/>
+            </copy>
+            <copy>
+              <from expression="1"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:QtdeHotDog"/>
+            </copy>
+            <copy>
+              <from expression="1"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:QtdeBebida"/>
+            </copy>
+            <copy>
+              <from expression="1"/>
+              <to variable="RegistraVenda_RegistraVenda_InputVariable" part="parameters" query="/ns2:RegistraVenda/ns2:idFilial"/>
             </copy>
           </assign>
           <invoke name="RegistraVenda" partnerLink="PartnerLink_Loja" portType="ns2:LojaSoap" operation="RegistraVenda" inputVariable="RegistraVenda_RegistraVenda_InputVariable" outputVariable="RegistraVenda_RegistraVenda_OutputVariable"/>
